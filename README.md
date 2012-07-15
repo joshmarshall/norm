@@ -60,7 +60,7 @@ a Redis PubSub channel, go for it.
 Only the DBM backend is currently implemented. I'm going to go after a few that
 I personally want to play with (Riak, Redis, maybe Postgres), but anyone can
 implement their own Connection and Store in their own projects. Feedback at this
-early stage would be LOVED.
+early stage would be much appreciated.
 
 The @norm.framework.* interfaces are obviously optional -- I like my tests telling
 me when I forgot to implement a method, but others don't like their duck typing
