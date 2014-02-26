@@ -12,26 +12,32 @@ import norm.framework
 @norm.framework.model
 class User(object):
 
-    def __init__(self, name, email, password=None, uid=None):
+    @classmethod
+    def __new__(cls, name, email, password):
+        password = cls._hash_password(password)
+        return cls(name=name, email=email, password=password)
+
+    @classmethod
+    def _hash_password(cls, password):
+        return hashlib.sha1(password).hexdigest
+
+    def __init__(self, name, email, password):
         self._name = name
         self._email = email
         self._password = password
 
-    def set_password(self, password):
-        self._password = hash(password)
-
-    def authenticate(self, password):
-        return hash(password) == self._password
-
-    def dictify(self):
+    def serialize(self):
         return {
             "password": self._password,
             "name": self._name,
             "email": self._email,
         }
 
-    def get_key(self):
+    def identify(self):
         return self._email
+
+    def authenticate(self, password):
+        return password == self._hash_password(password)
 
 
 # ...somewhere you are working with real data...
@@ -42,17 +48,16 @@ context = Context()
 register(context)
 connection = context.get_connection("dbm:///tmp/database.db")
 store = connection.get_store()
-user = User(name="Joe", email="joe@email.com")
-user.set_password("password")
-store.save(user)
-# ... later on ...
-user = store.fetch("joe@email.com", User)
-# or any implementation specific operations, like find(), increment(), etc.
+store.register_model("user", User)
+user = User.new(name="Joe", email="joe@email.com", password="foobar")
+store.user.save(user)
+user = store.user.fetch("joe@email.com")
+user.authenticate("foobar")
 ```
 
 The core idea is that a connection is separate from a storage layer is separate
 from your actual business models. Not only does this free up any class in your
-system to be persisted (as long as it implements the `dictify()` and `get_key()`
+system to be persisted (as long as it implements the `serialize()` and `identify()`
 methods), but you can persist them in any compatible datastore. So if you are
 saving objects to your "safe" SQL database, but also need to shove them down
 a Redis PubSub channel, go for it.

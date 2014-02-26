@@ -5,9 +5,10 @@ import json
 import tempfile
 from unittest2 import TestCase
 
-from norm.backends.dbm_backend import DBMStore, DBMConnection, register
+from norm.backends import dbm_backend
 from norm.context import Context
 import norm.framework
+
 
 @norm.framework.model
 class Person(object):
@@ -16,26 +17,30 @@ class Person(object):
         self._name = name
         self._uid = uid
 
-    def dictify(self):
+    def to_dict(self):
         return {
             "name": self._name,
             "uid": self._uid
         }
 
-    def get_key(self):
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
+
+    def identify(self):
         return self._uid
 
     def __eq__(self, other):
-        return self.dictify() == other.dictify()
+        return self.identify() == other.identify()
 
 
 class TestDBMBackend(TestCase):
 
     def setUp(self):
         self._tempfile = tempfile.NamedTemporaryFile(suffix=".db")
-        self._connection = DBMConnection(self._tempfile.name)
+        self._connection = dbm_backend.DBMConnection(self._tempfile.name)
         self._connection.connect()
-        self._store = DBMStore(self._connection)
+        self._store = dbm_backend.DBMStore(self._connection)
         self._person = Person(name="Foobar", uid="foobar")
 
     def tearDown(self):
@@ -50,15 +55,17 @@ class TestDBMBackend(TestCase):
 
     def test_fetch(self):
         self._store.save(self._person)
-        fetched = self._store.fetch("foobar", Person)
+        fetched = self._store.fetch(Person, "foobar")
         self.assertEqual(fetched, self._person)
 
     def test_register(self):
         context = Context()
-        register(context)
+        dbm_backend.register(context)
+        self._store.save(self._person)
+
+        # creating a different connection to test...
         connection = context.get_connection("dbm://%s" % self._tempfile.name)
         connection.connect()
         store = connection.get_store()
-        self._store.save(self._person)
-        person = store.fetch("foobar", Person)
+        person = store.fetch(Person, "foobar")
         self.assertEqual(person, self._person)
