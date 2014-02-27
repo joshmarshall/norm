@@ -2,6 +2,10 @@
 nORM
 ====
 
+
+DISCLAIMER: Refactoring has not resulted in updated documentation yet. None
+of this works like it says it does. :) Stay tuned.
+
 nORM (which stands for No ORM) is a simple framework for separating your business
 models from your database layer(s). Mostly, it grew from fat model frustration,
 discussions about too much public data, etc. It's just a prototype

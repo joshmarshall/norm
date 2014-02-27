@@ -151,3 +151,34 @@ class TestField(unittest.TestCase):
         # but falsy values should still be serialized...
         model.field = 0
         self.assertEqual('0', model["field"])
+
+    def test_full_example(self):
+
+        # this functions much like the 'real' Model will when it gets
+        # implemented, and thusly this test will likely be short lived.
+        class Model(object):
+
+            field1 = norm.field.Field(default="foobar")
+            field2 = norm.field.Field()
+
+            @classmethod
+            def from_dict(cls, data):
+                result = cls.__new__(cls)
+                result._data = data
+                norm.field.populate_defaults(result)
+                return result
+
+            def __getitem__(self, key):
+                return self._data[key]
+
+            def __setitem__(self, key, value):
+                self._data[key] = value
+
+        model = Model.from_dict({"field2": "thing"})
+        self.assertEqual("foobar", model["field1"])
+        self.assertEqual("foobar", model.field1)
+        self.assertEqual("thing", model["field2"])
+        self.assertEqual("thing", model.field2)
+
+        model.field1 = "foo"
+        self.assertEqual("foo", model["field1"])
