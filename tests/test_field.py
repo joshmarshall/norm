@@ -1,5 +1,7 @@
+import mock
 import unittest
 import norm.field
+import norm.context
 
 
 class TestField(unittest.TestCase):
@@ -152,33 +154,28 @@ class TestField(unittest.TestCase):
         model.field = 0
         self.assertEqual('0', model["field"])
 
-    def test_full_example(self):
+    def test_named_field(self):
+        class Model(dict):
+            field = norm.field.Field(field_name="foo")
 
-        # this functions much like the 'real' Model will when it gets
-        # implemented, and thusly this test will likely be short lived.
-        class Model(object):
+        model = Model()
+        model.field = "foobar"
+        self.assertEqual("foobar", model["foo"])
 
-            field1 = norm.field.Field(default="foobar")
-            field2 = norm.field.Field()
+        model["foo"] = "other"
+        self.assertEqual("other", model.field)
 
-            @classmethod
-            def from_dict(cls, data):
-                result = cls.__new__(cls)
-                result._data = data
-                norm.field.populate_defaults(result)
-                return result
+    def test_subclass_field(self):
+        store = mock.Mock()
+        store.save._NORM_SERIALIZE = True
+        store.fetch._NORM_DESERIALIZE = False
 
-            def __getitem__(self, key):
-                return self._data[key]
+        class Model(dict):
+            use = norm.context.StoreContextWrapper()
+            field = norm.field.Field()
 
-            def __setitem__(self, key, value):
-                self._data[key] = value
+        M = Model.use(store)
 
-        model = Model.from_dict({"field2": "thing"})
-        self.assertEqual("foobar", model["field1"])
-        self.assertEqual("foobar", model.field1)
-        self.assertEqual("thing", model["field2"])
-        self.assertEqual("thing", model.field2)
-
-        model.field1 = "foo"
-        self.assertEqual("foo", model["field1"])
+        model = M()
+        model.field = "foobar"
+        self.assertEqual("foobar", model["field"])

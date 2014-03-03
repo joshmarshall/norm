@@ -78,9 +78,10 @@ class TestNormContext(TestCase):
             use = StoreContextWrapper()
 
         M = Model.use(mock_store)
-        M.store.fetch("foobar")
+        result = M.store.fetch("foobar")
         mock_store.fetch.assert_called_with(M, "foobar")
+        self.assertEqual(result, mock_store.fetch.return_value)
 
-        m = M()
+        m = M(foo="bar")
         m.store.save()
         mock_store.save.assert_called_with(m)

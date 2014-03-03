@@ -14,7 +14,10 @@ class DBMStore(object):
     @norm.framework.deserialize
     def fetch(self, model, key):
         key = "%s:%s" % (model.__name__, key)
-        return model.from_dict(json.loads(self._connection.fetch(key)))
+        result = self._connection.fetch(key)
+        if result:
+            result = model.from_dict(json.loads(result))
+        return result
 
     @norm.framework.serialize
     def save(self, instance):
@@ -22,6 +25,20 @@ class DBMStore(object):
         data = instance.to_dict()
         self._connection.save(key, json.dumps(data))
         self._connection.flush()
+
+    @norm.framework.deserialize
+    def create(self, model, **kwargs):
+        instance = model(**kwargs)
+        self.save(instance)
+        return instance
+
+    @norm.framework.deserialize
+    def find(self, model):
+        prefix = "{}:".format(model.__name__)
+        for key in self._connection._dbm.keys():
+            if key.startswith(prefix):
+                identifier = key.split(prefix)[1]
+                yield self.fetch(model, identifier)
 
 
 @norm.framework.connection
@@ -35,8 +52,9 @@ class DBMConnection(object):
     def __init__(self, path, flag="c"):
         self._path = path
         self._flag = flag
+        self._open()
 
-    def connect(self):
+    def _open(self):
         self._dbm = dbm.open(self._path, self._flag)
 
     def disconnect(self):
@@ -47,12 +65,14 @@ class DBMConnection(object):
 
     def flush(self):
         self._dbm.close()
-        self.connect()
+        self._open()
 
     def save(self, key, data):
         self._dbm[key] = data
 
     def fetch(self, key):
+        if key not in self._dbm:
+            return None
         return self._dbm[key]
 
 

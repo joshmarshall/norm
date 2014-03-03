@@ -39,7 +39,6 @@ class TestDBMBackend(TestCase):
     def setUp(self):
         self._tempfile = tempfile.NamedTemporaryFile(suffix=".db")
         self._connection = dbm_backend.DBMConnection(self._tempfile.name)
-        self._connection.connect()
         self._store = dbm_backend.DBMStore(self._connection)
         self._person = Person(name="Foobar", uid="foobar")
 
@@ -58,6 +57,10 @@ class TestDBMBackend(TestCase):
         fetched = self._store.fetch(Person, "foobar")
         self.assertEqual(fetched, self._person)
 
+    def test_fetch_none(self):
+        fetched = self._store.fetch(Person, "whatever")
+        self.assertIsNone(fetched)
+
     def test_register(self):
         context = Context()
         dbm_backend.register(context)
@@ -65,7 +68,27 @@ class TestDBMBackend(TestCase):
 
         # creating a different connection to test...
         connection = context.get_connection("dbm://%s" % self._tempfile.name)
-        connection.connect()
         store = connection.get_store()
         person = store.fetch(Person, "foobar")
         self.assertEqual(person, self._person)
+
+    def test_create(self):
+        person = self._store.create(Person, name="Foo Bar", uid="foobar")
+        self.assertEqual(
+            {"uid": "foobar", "name": "Foo Bar"}, person.to_dict())
+
+        person2 = self._store.fetch(Person, "foobar")
+        self.assertEqual(person.to_dict(), person2.to_dict())
+
+    def test_find(self):
+        persons = []
+        for i in range(10):
+            person = self._store.create(Person, name=str(i), uid=str(i))
+            persons.append(person.identify())
+
+        actual_persons = []
+        for person in self._store.find(Person):
+            actual_persons.append(person.identify())
+
+        for person in persons:
+            self.assertTrue(person in actual_persons)
