@@ -2,3 +2,5 @@
 *.swo
 *.swp
 .venv
+dist/
+norm.egg-info
