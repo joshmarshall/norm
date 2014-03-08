@@ -2,7 +2,7 @@ class Field(object):
 
     def __init__(
             self, valid_type=None, default=None, coerce=lambda x: x,
-            serialize=lambda x: x, deserialize=lambda x: x,
+            serialize=lambda x, y: y, deserialize=lambda x, y: y,
             field_name=None):
         self._default = default
         self._coerce = coerce
@@ -29,7 +29,7 @@ class Field(object):
                 "Invalid type `{}` for field `{}`".format(
                     type(value), field_name))
         if value is not None:
-            value = self._serialize(value)
+            value = self._serialize(obj, value)
         obj[field_name] = value
 
     def __get__(self, obj, objtype):
@@ -41,7 +41,7 @@ class Field(object):
         except KeyError:
             value = self.set_default(field_name, obj)
         if value is not None:
-            value = self._deserialize(value)
+            value = self._deserialize(obj, value)
         return value
 
     def _get_field_name(self, cls):

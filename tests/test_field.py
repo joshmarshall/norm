@@ -50,7 +50,7 @@ class TestField(unittest.TestCase):
 
     def test_serialize(self):
         class Model(dict):
-            field = norm.field.Field(serialize=lambda x: "bar")
+            field = norm.field.Field(serialize=lambda x, y: "bar")
 
         m = Model()
         m.field = "foo"
@@ -58,7 +58,7 @@ class TestField(unittest.TestCase):
 
     def test_deserialize(self):
         class Model(dict):
-            field = norm.field.Field(deserialize=lambda x: "bar")
+            field = norm.field.Field(deserialize=lambda x, y: "bar")
 
         m = Model()
         m.field = "foo"
@@ -133,7 +133,7 @@ class TestField(unittest.TestCase):
 
     def test_deserialize_none_value(self):
         class Model(dict):
-            field = norm.field.Field(deserialize=str)
+            field = norm.field.Field(deserialize=lambda x, y: str(y))
 
         model = Model()
         self.assertEqual(None, model.field)
@@ -144,7 +144,7 @@ class TestField(unittest.TestCase):
 
     def test_serialize_none_value(self):
         class Model(dict):
-            field = norm.field.Field(serialize=str)
+            field = norm.field.Field(serialize=lambda x, y: str(y))
 
         model = Model()
         model.field = None
