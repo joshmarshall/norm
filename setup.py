@@ -11,4 +11,5 @@ setuptools.setup(
     url="https://github.com/joshmarshall/norm",
     license="http://www.apache.org/licenses/LICENSE-2.0",
     version=VERSION,
-    packages=["norm", "norm.backends"])
+    packages=["norm", "norm.backends"],
+    install_requires=["interfaces"])
