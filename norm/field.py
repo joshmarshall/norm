@@ -13,22 +13,26 @@ class Field(object):
     def __init__(
             self, valid_type=None, default=EMPTY, coerce=lambda x: x,
             serialize=lambda x, y: y, deserialize=lambda x, y: y,
-            field_name=None):
+            field_name=None, required=False):
         self._default = default
         self._coerce = coerce
         self._serialize = serialize
         self._deserialize = deserialize
         self._valid_type = valid_type
         self._field_name = field_name
+        self._required = required
 
     def set_default(self, field_name, instance):
         if callable(self._default):
             value = self._default()
         else:
             value = self._default
-        print field_name, instance, value
         if value is not EMPTY:
             instance[field_name] = value
+        elif self._required:
+            raise EmptyRequiredField(
+                "Field '{0}' for model '{1}' is required but empty.".format(
+                    field_name, instance.__class__.__name__))
         return value
 
     def __set__(self, obj, value):
@@ -94,5 +98,5 @@ def populate_defaults(model):
         field.set_default(field_name, model)
 
 
-class EmptyField(Exception):
+class EmptyRequiredField(Exception):
     pass

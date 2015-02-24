@@ -1,7 +1,7 @@
 import mock
 import unittest
 from norm.model import Model, MissingIDField, UnknownField
-from norm.field import Field
+from norm.field import Field, EmptyRequiredField
 
 
 class TestModel(unittest.TestCase):
@@ -96,3 +96,10 @@ class TestModel(unittest.TestCase):
 
         m = M()
         self.assertEqual("whatever", m.field)
+
+    def test_model_with_required(self):
+        class M(Model):
+            field = Field(required=True)
+
+        with self.assertRaises(EmptyRequiredField):
+            M()
