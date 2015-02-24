@@ -20,7 +20,7 @@ class Field(object):
         self._deserialize = deserialize
         self._valid_type = valid_type
         self._field_name = field_name
-        self._required = required
+        self.required = required
 
     def set_default(self, field_name, instance):
         if callable(self._default):
@@ -29,10 +29,6 @@ class Field(object):
             value = self._default
         if value is not EMPTY:
             instance[field_name] = value
-        elif self._required:
-            raise EmptyRequiredField(
-                "Field '{0}' for model '{1}' is required but empty.".format(
-                    field_name, instance.__class__.__name__))
         return value
 
     def __set__(self, obj, value):
@@ -83,12 +79,15 @@ def get_field_name(cls, field):
         "No field found on model {}".format(cls.__name__))
 
 
-def get_all_field_names(cls):
-    fields = []
+def get_all_fields(cls):
     for attr in dir(cls):
-        if isinstance(getattr(cls, attr), Field):
-            fields.append(attr)
-    return fields
+        field = getattr(cls, attr)
+        if isinstance(field, Field):
+            yield attr, field
+
+
+def get_all_field_names(cls):
+    return [f for f, _ in get_all_fields(cls)]
 
 
 def populate_defaults(model):
@@ -96,7 +95,3 @@ def populate_defaults(model):
     for field_name in get_all_field_names(model_class):
         field = getattr(model_class, field_name)
         field.set_default(field_name, model)
-
-
-class EmptyRequiredField(Exception):
-    pass

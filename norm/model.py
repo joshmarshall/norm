@@ -1,6 +1,6 @@
 import norm.framework
 from norm.context import StoreContextWrapper
-from norm.field import populate_defaults, get_all_field_names
+from norm.field import populate_defaults, get_all_fields
 
 
 @norm.framework.model
@@ -11,6 +11,18 @@ class Model(object):
     use = StoreContextWrapper()
 
     def __new__(cls, *args, **kwargs):
+        # caching fields and required fields on the model
+        # so we don't have to discover every time.
+        if not hasattr(cls, "_fields"):
+            fields = []
+            required_fields = []
+            for field_name, field in get_all_fields(cls):
+                fields.append(field_name)
+                if field.required:
+                    required_fields.append(field_name)
+            cls._fields = set(fields)
+            cls._required_fields = set(required_fields)
+
         instance = super(Model, cls).__new__(cls)
         instance._data = {}
         populate_defaults(instance)
@@ -18,12 +30,24 @@ class Model(object):
 
     def __init__(self, **kwargs):
         # intented to be overwritten on all but the most simple models
-        field_names = get_all_field_names(self.__class__)
+        # currently implements two things: invalid field checking and
+        # required field checking. custom models can implement this logic
+        # however they want, no need to even call super()
+        missing_keys = self._required_fields.difference(kwargs.keys())
+        model_name = self.__class__.__name__
+        if missing_keys:
+            raise EmptyRequiredField(
+                "Field(s) ('{0}') for model '{1}' is "
+                "required but empty.".format(
+                    "', '".join(missing_keys), model_name))
+
+        if not self._fields.issuperset(kwargs.keys()):
+            unknown_fields = set(kwargs.keys()).difference(self._fields)
+            raise UnknownField(
+                "Could not set field(s) ('{0}') on model '{1}'".format(
+                    "', '".join(unknown_fields), model_name))
+
         for field, value in kwargs.items():
-            if field not in field_names:
-                raise UnknownField(
-                    "Could not set field '{0}' on model '{1}'".format(
-                        field, self.__class__.__name__))
             setattr(self, field, value)
 
     @classmethod
@@ -66,8 +90,8 @@ class MissingIDField(Exception):
 
 
 class UnknownField(Exception):
-    """
-    Raised when an unknown field is passed into construction.
+    pass
 
-    """
+
+class EmptyRequiredField(Exception):
     pass
