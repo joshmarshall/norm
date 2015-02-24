@@ -14,19 +14,23 @@ class Field(object):
             self, valid_type=None, default=EMPTY, coerce=lambda x: x,
             serialize=lambda x, y: y, deserialize=lambda x, y: y,
             field_name=None, required=False):
-        self._default = default
+
+        # public attributes
+        self.default = default
+        self.required = required
+
+        # private attributes / functions
         self._coerce = coerce
         self._serialize = serialize
         self._deserialize = deserialize
         self._valid_type = valid_type
         self._field_name = field_name
-        self.required = required
 
     def set_default(self, field_name, instance):
-        if callable(self._default):
-            value = self._default()
+        if callable(self.default):
+            value = self.default()
         else:
-            value = self._default
+            value = self.default
         if value is not EMPTY:
             instance[field_name] = value
         return value
@@ -53,6 +57,10 @@ class Field(object):
             value = self.set_default(field_name, obj)
 
         if value is EMPTY:
+            if self.required:
+                raise EmptyRequiredField(
+                    "Field '{0}' on model '{1}' is empty but required.".format(
+                        field_name, obj.__class__.__name__))
             # there's an option to raise an explicit EmptyField error
             # here. that seems a bit unfriendly to document stores...
             # however this interface keeps us from knowing the difference
@@ -95,3 +103,7 @@ def populate_defaults(model):
     for field_name in get_all_field_names(model_class):
         field = getattr(model_class, field_name)
         field.set_default(field_name, model)
+
+
+class EmptyRequiredField(Exception):
+    pass

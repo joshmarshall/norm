@@ -43,12 +43,15 @@ class TestModel(unittest.TestCase):
         class M(Model):
             field1 = Field(default="foobar")
             field2 = Field()
+            field3 = Field(required=True)
 
-        model = M.from_dict({"field2": "thing"})
+        model = M.from_dict({"field2": "thing", "field3": "required"})
         self.assertEqual("foobar", model["field1"])
         self.assertEqual("foobar", model.field1)
         self.assertEqual("thing", model["field2"])
         self.assertEqual("thing", model.field2)
+        self.assertEqual("required", model["field3"])
+        self.assertEqual("required", model.field3)
 
         model.field1 = "foo"
         self.assertEqual("foo", model["field1"])

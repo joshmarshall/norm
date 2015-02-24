@@ -1,7 +1,8 @@
 import mock
 import unittest
 from norm.field import Field, get_all_field_names, get_field_name
-from norm.field import populate_defaults, EMPTY, EmptyRequiredField
+from norm.field import get_all_fields, populate_defaults, EMPTY
+from norm.field import EmptyRequiredField
 from norm.context import StoreContextWrapper
 
 
@@ -72,6 +73,14 @@ class TestField(unittest.TestCase):
         m = Model()
         m.field = 5
 
+    def test_required_getter(self):
+        class Model(dict):
+            field = Field(required=True)
+
+        m = Model()
+        with self.assertRaises(EmptyRequiredField):
+            getattr(m, "field")
+
     def test_get_field_name(self):
         field_instance = Field()
 
@@ -91,6 +100,19 @@ class TestField(unittest.TestCase):
         with self.assertRaises(AttributeError):
             get_field_name(Foo, field_instance)
 
+    def test_get_all_fields(self):
+        class Model(dict):
+            field1 = Field(required=True)
+            field2 = Field(default=None)
+
+        for field_name, field in get_all_fields(Model):
+            if field_name == "field1":
+                self.assertEqual(True, field.required)
+                self.assertEqual(EMPTY, field.default)
+            else:
+                self.assertEqual(None, field.default)
+                self.assertEqual(False, field.required)
+
     def test_get_all_field_names(self):
         class Foo(object):
             field1 = Field()
@@ -109,14 +131,6 @@ class TestField(unittest.TestCase):
         populate_defaults(foo)
         self.assertEqual("foo", foo.field)
         self.assertEqual("foo", foo["field"])
-
-    def test_populate_defaults_with_required(self):
-        class Model(dict):
-            field = Field(required=True)
-
-        instance = Model()
-        with self.assertRaises(EmptyRequiredField):
-            populate_defaults(instance)
 
     def test_field_set_default_with_default(self):
         model = {}

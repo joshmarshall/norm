@@ -1,6 +1,6 @@
 import norm.framework
 from norm.context import StoreContextWrapper
-from norm.field import populate_defaults, get_all_fields
+from norm.field import populate_defaults, get_all_fields, EmptyRequiredField
 
 
 @norm.framework.model
@@ -90,8 +90,4 @@ class MissingIDField(Exception):
 
 
 class UnknownField(Exception):
-    pass
-
-
-class EmptyRequiredField(Exception):
     pass
