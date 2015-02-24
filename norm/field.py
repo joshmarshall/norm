@@ -1,7 +1,17 @@
+# Right now, defaults to an EMPTY field unless explicitly set to a "sane"
+# None / null value. This is more friendly to document / KV stores than to
+# column-based stores.
+
+from collections import namedtuple
+
+
+EMPTY = namedtuple("EmptyField", [])()
+
+
 class Field(object):
 
     def __init__(
-            self, valid_type=None, default=None, coerce=lambda x: x,
+            self, valid_type=None, default=EMPTY, coerce=lambda x: x,
             serialize=lambda x, y: y, deserialize=lambda x, y: y,
             field_name=None):
         self._default = default
@@ -16,7 +26,8 @@ class Field(object):
             value = self._default()
         else:
             value = self._default
-        if self._default:
+        print field_name, instance, value
+        if value is not EMPTY:
             instance[field_name] = value
         return value
 
@@ -40,6 +51,14 @@ class Field(object):
             value = obj[field_name]
         except KeyError:
             value = self.set_default(field_name, obj)
+
+        if value is EMPTY:
+            # there's an option to raise an explicit EmptyField error
+            # here. that seems a bit unfriendly to document stores...
+            # however this interface keeps us from knowing the difference
+            # between an unset field and an explicit NULL value.
+            value = None
+
         if value is not None:
             value = self._deserialize(obj, value)
         return value
@@ -73,3 +92,7 @@ def populate_defaults(model):
     for field_name in get_all_field_names(model_class):
         field = getattr(model_class, field_name)
         field.set_default(field_name, model)
+
+
+class EmptyField(Exception):
+    pass

@@ -59,15 +59,33 @@ class TestNormContext(TestCase):
 
     def test_store_context_model_mismatch(self):
         mock_store = Mock()
+        mock_store.serialize._NORM_SERIALIZE = True
 
         class Model(Base):
             store = StoreContext(mock_store)
 
         with self.assertRaises(AttributeError):
-            Model.store.fetch()
+            Model.store.serialize()
 
         with self.assertRaises(AttributeError):
-            Model().store.save()
+            Model().store.unregistered()
+
+    def test_store_context_instance(self):
+        mock_store = Mock()
+        mock_store.fetch._NORM_DESERIALIZE = True
+        mock_store.save._NORM_SERIALIZE = True
+
+        class Model(Base):
+            store = StoreContext(mock_store)
+
+        # an instance should be able to perform both serialization
+        # and deserialization methods on a store
+        instance = Model()
+        instance.store.save()
+        mock_store.save.assert_called_with(instance)
+
+        instance.store.fetch("foo")
+        mock_store.fetch.assert_called_with(Model, "foo")
 
     def test_store_context_wrapper(self):
         mock_store = Mock()

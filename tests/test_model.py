@@ -1,6 +1,6 @@
 import mock
 import unittest
-from norm.model import Model, MissingIDField
+from norm.model import Model, MissingIDField, UnknownField
 from norm.field import Field
 
 
@@ -12,6 +12,32 @@ class TestModel(unittest.TestCase):
 
         m = M()
         self.assertEqual({}, m.to_dict())
+
+    def test_model_to_dict_defaults(self):
+        class M(Model):
+            field1 = Field(default="foobar")
+            field2 = Field(default=None)
+            field3 = Field()
+
+        instance = M()
+        self.assertEqual({
+            "field1": "foobar",
+            "field2": None
+        }, instance.to_dict())
+
+    def test_model_to_dict_construction(self):
+        class M(Model):
+            field = Field()
+
+        instance = M(field="foobar")
+        self.assertEqual({"field": "foobar"}, instance.to_dict())
+
+    def test_model_construction_invalid_field(self):
+        class M(Model):
+            pass
+
+        with self.assertRaises(UnknownField):
+            M(field="foobar")
 
     def test_from_dict(self):
         class M(Model):

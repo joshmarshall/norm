@@ -44,14 +44,18 @@ class _StoreContextAttribute(object):
         return self._model_attribute(attribute, attribute_name)
 
     def _instance_attribute(self, attribute, attribute_name):
-        if not _serializable(attribute):
+        if _deserializable(attribute):
+            def call(*args, **kwargs):
+                return attribute(self._instance.__class__, *args, **kwargs)
+            return call
+        elif _serializable(attribute):
+            def call(*args, **kwargs):
+                return attribute(self._instance, *args, **kwargs)
+            return call
+        else:
             raise AttributeError(
                 "Attribute `{}` not available for instances on "
                 "store `{}`.".format(attribute_name, self._store.__class__))
-
-        def call(*args, **kwargs):
-            return attribute(self._instance, *args, **kwargs)
-        return call
 
     def _model_attribute(self, attribute, attribute_name):
         if not _deserializable(attribute):
