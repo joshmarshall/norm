@@ -106,3 +106,10 @@ class TestModel(unittest.TestCase):
 
         with self.assertRaises(EmptyRequiredField):
             M()
+
+    def test_model_with_required_and_default(self):
+        class M(Model):
+            field = Field(required=True, default="foo")
+
+        # shouldn't cause any issues...
+        M()

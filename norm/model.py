@@ -33,8 +33,9 @@ class Model(object):
         # currently implements two things: invalid field checking and
         # required field checking. custom models can implement this logic
         # however they want, no need to even call super()
-        missing_keys = self._required_fields.difference(kwargs.keys())
         model_name = self.__class__.__name__
+        missing_keys = self._required_fields.difference(
+            kwargs.keys() + self._data.keys())
         if missing_keys:
             raise EmptyRequiredField(
                 "Field(s) ('{0}') for model '{1}' is "
