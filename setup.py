@@ -4,7 +4,7 @@ with open("VERSION") as version_fp:
     VERSION = version_fp.read().strip()
 
 setup(
-    name="norm",
+    name="normdb",
     description="Database-agnostic model and storage library",
     author="Josh Marshall",
     author_email="catchjosh@gmail.com",
