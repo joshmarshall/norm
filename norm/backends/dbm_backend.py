@@ -40,6 +40,10 @@ class DBMStore(object):
                 identifier = key.split(prefix)[1]
                 yield self.fetch(model, identifier)
 
+    def delete(self, model, key):
+        prefix = "{}:{}".format(model.__name__, key)
+        self._connection.delete(prefix)
+
 
 @norm.framework.connection
 class DBMConnection(object):
@@ -74,6 +78,9 @@ class DBMConnection(object):
         if key not in self._dbm:
             return None
         return self._dbm[key]
+
+    def delete(self, key):
+        del self._dbm[key]
 
 
 def register(context):

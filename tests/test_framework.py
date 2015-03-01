@@ -50,13 +50,14 @@ class TestFramework(TestCase):
                 fetch._NORM_DESERIALIZE = True
 
         self.assert_requires_methods(
-            norm.framework.store, ["save", "fetch"],
+            norm.framework.store, ["save", "fetch", "delete"],
             norm.framework.InvalidStore, customize)
 
     def test_missing_serialization(self):
         methods = {
             "save": lambda x: x,
-            "fetch": classmethod(lambda x: x)
+            "fetch": classmethod(lambda x: x),
+            "delete": lambda x: None
         }
         with self.assertRaises(norm.framework.InvalidStore):
             norm.framework.store(type("Store", (object,), methods))
@@ -67,11 +68,14 @@ class TestFramework(TestCase):
         class Store(object):
 
             @norm.framework.deserialize
-            def fetch(self, key, factory):
+            def fetch(self, factory, key):
                 pass
 
             @norm.framework.serialize
             def save(self, instance):
+                pass
+
+            def delete(self, instance):
                 pass
 
     def test_connection_requires_methods(self):

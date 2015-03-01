@@ -63,6 +63,11 @@ class StoreInterface(object):
         """All stores must implement: `save()`"""
         pass
 
+    @interfaces.require
+    def delete(self, key):
+        """All stores must implement: `delete()`"""
+        pass
+
 
 @interfaces.define
 class ConnectionInterface(object):

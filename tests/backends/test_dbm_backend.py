@@ -92,3 +92,12 @@ class TestDBMBackend(TestCase):
 
         for person in persons:
             self.assertTrue(person in actual_persons)
+
+    def test_delete(self):
+        for i in range(10):
+            person = self._store.create(Person, name=str(i), uid=str(i))
+        self._store.delete(Person, person.identify())
+        people = list(self._store.find(Person))
+        self.assertEqual(9, len(people))
+        uids = [p.identify() for p in people]
+        self.assertFalse(person.identify() in uids)

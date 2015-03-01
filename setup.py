@@ -1,9 +1,9 @@
-import setuptools
+from setuptools import setup, find_packages
 
 with open("VERSION") as version_fp:
     VERSION = version_fp.read().strip()
 
-setuptools.setup(
+setup(
     name="norm",
     description="Database-agnostic model and storage library",
     author="Josh Marshall",
@@ -11,5 +11,6 @@ setuptools.setup(
     url="https://github.com/joshmarshall/norm",
     license="http://www.apache.org/licenses/LICENSE-2.0",
     version=VERSION,
-    packages=["norm", "norm.backends"],
-    install_requires=["interfaces"])
+    packages=find_packages(exclude=["tests", "dist"]),
+    install_requires=["interfaces"]
+)

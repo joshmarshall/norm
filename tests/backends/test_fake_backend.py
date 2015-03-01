@@ -41,6 +41,9 @@ class FakeStore(object):
         model_name = model.__name__
         return self._data["{}.{}".format(model_name, instance_id)]
 
+    def delete(self, model, instance_id):
+        del self._data["{}.{}".format(model.__name__, instance_id)]
+
 
 @norm.framework.model
 class Model(object):
