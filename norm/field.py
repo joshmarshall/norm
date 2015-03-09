@@ -31,6 +31,8 @@ class Field(object):
             value = self.default()
         else:
             value = self.default
+        if value is not EMPTY and value is not None:
+            value = self._serialize(instance, value)
         if value is not EMPTY:
             instance[field_name] = value
         return value

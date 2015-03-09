@@ -1,3 +1,4 @@
+import json
 import mock
 import unittest
 from norm.field import Field, get_all_field_names, get_field_name
@@ -204,3 +205,14 @@ class TestField(unittest.TestCase):
         model = M()
         model.field = "foobar"
         self.assertEqual("foobar", model["field"])
+
+    def test_default_calls_serialize(self):
+        class Model(dict):
+            field = Field(
+                list, serialize=lambda x, y: json.dumps(y),
+                deserialize=lambda x, y: json.loads(y),
+                default=lambda: [])
+
+        instance = Model()
+        self.assertEqual([], instance.field)
+        self.assertEqual([], json.loads(instance["field"]))
