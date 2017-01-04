@@ -23,7 +23,7 @@ def _interface_validator(interface, exception):
         try:
             return interfaces.implement(interface)(cls)
         except (
-                interfaces.MissingRequiredAttribute,
+                interfaces.MissingRequiredMethod,
                 interfaces.MissingRequiredClassMethod
         ) as exc:
             error_string = "Error in class `{}`: {}".format(cls.__name__, exc)
@@ -54,7 +54,7 @@ class ModelInterface(object):
 class StoreInterface(object):
 
     @interfaces.require
-    def fetch(self, model, instance_id):
+    def fetch(self, model, key):
         """All stores must implement: `fetch()`"""
         pass
 
@@ -64,7 +64,7 @@ class StoreInterface(object):
         pass
 
     @interfaces.require
-    def delete(self, key):
+    def delete(self, model, key):
         """All stores must implement: `delete()`"""
         pass
 

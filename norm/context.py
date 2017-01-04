@@ -2,7 +2,11 @@
 The Context class. This is used to register backend connections and stores.
 """
 
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+
 from norm.framework import _deserializable, _serializable
 
 
