@@ -37,12 +37,12 @@ class FakeStore(object):
         return instance_id
 
     @norm.framework.deserialize
-    def fetch(self, model, instance_id):
+    def fetch(self, model, key):
         model_name = model.__name__
-        return self._data["{}.{}".format(model_name, instance_id)]
+        return self._data["{}.{}".format(model_name, key)]
 
-    def delete(self, model, instance_id):
-        del self._data["{}.{}".format(model.__name__, instance_id)]
+    def delete(self, model, key):
+        del self._data["{}.{}".format(model.__name__, key)]
 
 
 @norm.framework.model

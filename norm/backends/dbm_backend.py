@@ -16,14 +16,14 @@ class DBMStore(object):
         key = "%s:%s" % (model.__name__, key)
         result = self._connection.fetch(key)
         if result:
-            result = model.from_dict(json.loads(result))
+            result = model.from_dict(json.loads(result.decode("utf8")))
         return result
 
     @norm.framework.serialize
     def save(self, instance):
         key = "%s:%s" % (instance.__class__.__name__, instance.identify())
         data = instance.to_dict()
-        self._connection.save(key, json.dumps(data))
+        self._connection.save(key, json.dumps(data).encode("utf8"))
         self._connection.flush()
 
     @norm.framework.deserialize
@@ -36,6 +36,7 @@ class DBMStore(object):
     def find(self, model):
         prefix = "{}:".format(model.__name__)
         for key in self._connection._dbm.keys():
+            key = key.decode("utf8")
             if key.startswith(prefix):
                 identifier = key.split(prefix)[1]
                 yield self.fetch(model, identifier)
@@ -75,6 +76,7 @@ class DBMConnection(object):
         self._dbm[key] = data
 
     def fetch(self, key):
+        key = key.encode("utf8")
         if key not in self._dbm:
             return None
         return self._dbm[key]

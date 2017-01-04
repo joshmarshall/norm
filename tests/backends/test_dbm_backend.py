@@ -2,6 +2,7 @@
 
 import dbm
 import json
+import os
 import tempfile
 from unittest2 import TestCase
 
@@ -27,7 +28,7 @@ class Person(object):
     def from_dict(cls, data):
         return cls(**data)
 
-    def identify(self):
+    def identify(self, key=None):
         return self._uid
 
     def __eq__(self, other):
@@ -37,20 +38,22 @@ class Person(object):
 class TestDBMBackend(TestCase):
 
     def setUp(self):
-        self._tempfile = tempfile.NamedTemporaryFile(suffix=".db")
-        self._connection = dbm_backend.DBMConnection(self._tempfile.name)
+        with tempfile.NamedTemporaryFile(suffix=".db") as temp:
+            self._tempfile = temp.name
+        self._connection = dbm_backend.DBMConnection(self._tempfile)
         self._store = dbm_backend.DBMStore(self._connection)
         self._person = Person(name="Foobar", uid="foobar")
 
     def tearDown(self):
-        self._tempfile.close()
+        if os.path.exists(self._tempfile):
+            os.remove(self._tempfile)
 
     def test_save(self):
         self._store.save(self._person)
-        dbm_connection = dbm.open(self._tempfile.name, "r")
+        dbm_connection = dbm.open(self._tempfile, "r")
         self.assertEqual(
             {"name": "Foobar", "uid": "foobar"},
-            json.loads(dbm_connection["Person:foobar"]))
+            json.loads(dbm_connection["Person:foobar"].decode("utf8")))
 
     def test_fetch(self):
         self._store.save(self._person)
@@ -67,7 +70,7 @@ class TestDBMBackend(TestCase):
         self._store.save(self._person)
 
         # creating a different connection to test...
-        connection = context.get_connection("dbm://%s" % self._tempfile.name)
+        connection = context.get_connection("dbm://%s" % self._tempfile)
         store = connection.get_store()
         person = store.fetch(Person, "foobar")
         self.assertEqual(person, self._person)

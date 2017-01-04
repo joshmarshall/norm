@@ -8,9 +8,20 @@ class TestFramework(TestCase):
 
     def assert_requires_methods(
             self, interface, methods, exception, customize=lambda x: x):
+        method_funcs = {
+            "save": lambda self, instance: None,
+            "delete": lambda self, model, key: None,
+            "fetch": lambda self, model, key: None,
+            "disconnect": lambda self: None,
+            "from_dict": lambda self, data: None,
+            "to_dict": lambda self: None,
+            "identify": lambda self, key=None: None,
+            "get_store": lambda self: None,
+            "from_uri": lambda cls, uri: None
+        }
         for skip_method in methods:
             model_methods = dict([
-                (method, lambda self: None)
+                (method, method_funcs[method])
                 for method in methods
                 if method != skip_method
             ])
@@ -29,7 +40,7 @@ class TestFramework(TestCase):
         @norm.framework.model
         class Model(object):
 
-            def identify(self):
+            def identify(self, key=None):
                 pass
 
             def to_dict(self):
@@ -55,9 +66,9 @@ class TestFramework(TestCase):
 
     def test_missing_serialization(self):
         methods = {
-            "save": lambda x: x,
-            "fetch": classmethod(lambda x: x),
-            "delete": lambda x: None
+            "save": lambda self, instance: None,
+            "fetch": classmethod(lambda self, model, key: None),
+            "delete": lambda self, model, key: None
         }
         with self.assertRaises(norm.framework.InvalidStore):
             norm.framework.store(type("Store", (object,), methods))
@@ -68,14 +79,14 @@ class TestFramework(TestCase):
         class Store(object):
 
             @norm.framework.deserialize
-            def fetch(self, factory, key):
+            def fetch(self, model, key):
                 pass
 
             @norm.framework.serialize
             def save(self, instance):
                 pass
 
-            def delete(self, instance):
+            def delete(self, model, key):
                 pass
 
     def test_connection_requires_methods(self):
@@ -100,22 +111,18 @@ class TestFramework(TestCase):
                 pass
 
     def test_serialize(self):
-        foo = lambda x: None
-        foo = norm.framework.serialize(foo)
+        foo = norm.framework.serialize(lambda x: None)
         self.assertEqual(True, foo._NORM_SERIALIZE)
 
     def test_deserialize(self):
-        foo = lambda x: None
-        foo = norm.framework.deserialize(foo)
+        foo = norm.framework.deserialize(lambda x: None)
         self.assertEqual(True, foo._NORM_DESERIALIZE)
 
     def test_cannot_serialize_and_deserialize(self):
-        foo = lambda x: None
-        foo = norm.framework.deserialize(foo)
+        foo = norm.framework.deserialize(lambda x: None)
         with self.assertRaises(norm.framework.InterfaceMismatch):
             norm.framework.serialize(foo)
 
-        foo = lambda x: None
-        foo = norm.framework.serialize(foo)
+        foo = norm.framework.serialize(lambda x: None)
         with self.assertRaises(norm.framework.InterfaceMismatch):
             norm.framework.deserialize(foo)

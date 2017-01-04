@@ -1,3 +1,19 @@
 language: python
-install: pip install -r requirements.txt
+sudo: false
+python:
+- '2.7'
+- '3.4'
+- '3.5'
+install:
+- pip install -r requirements.txt
+- pip install -r dev-requirements.txt
 script: nosetests tests/
+deploy:
+  provider: pypi
+  user: joshmarshall
+  password:
+    secure: c82fq3ZVluRjldfXXxNgp14GzXLRNyDvCBYkFjemG5R6rRdIAM5XkQdn3uW7M29bKQFQykppMwvDzxIhIavQsPPljHAQu9pRzKdF8vanH4Ec4FTlamgo6EHQUXY7Z9vD94tBcJT42cDqrtRR8YSAhVPEpaiz0VHuhGB7RsAYZFw=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: joshmarshall/norm

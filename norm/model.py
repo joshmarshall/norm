@@ -35,7 +35,7 @@ class Model(object):
         # however they want, no need to even call super()
         model_name = self.__class__.__name__
         missing_keys = self._required_fields.difference(
-            kwargs.keys() + self._data.keys())
+            list(kwargs.keys()) + list(self._data.keys()))
         if missing_keys:
             raise EmptyRequiredField(
                 "Field(s) ('{0}') for model '{1}' is "
@@ -66,14 +66,14 @@ class Model(object):
     def to_dict(self):
         return self._data
 
-    def identify(self, identifier=None):
+    def identify(self, key=None):
         if not hasattr(self, self._id_field):
             raise MissingIDField(
                 "Model `{}` is configured to use an id field named `{}`, "
                 "but does not implement one.".format(
                     self.__class__.__name__, self._id_field))
-        if identifier:
-            self._data[self._id_field] = identifier
+        if key:
+            self._data[self._id_field] = key
         return getattr(self, self._id_field)
 
     def __eq__(self, other):

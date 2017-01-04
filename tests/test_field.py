@@ -6,6 +6,11 @@ from norm.field import get_all_fields, populate_defaults, EMPTY
 from norm.field import EmptyRequiredField
 from norm.context import StoreContextWrapper
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
 
 class TestField(unittest.TestCase):
 
