@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 import unittest
 from norm.model import Model, MissingIDField, UnknownField
 from norm.field import Field, EmptyRequiredField

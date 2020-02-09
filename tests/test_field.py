@@ -1,5 +1,5 @@
 import json
-import mock
+from unittest import mock
 import unittest
 from norm.field import Field, get_all_field_names, get_field_name
 from norm.field import get_all_fields, populate_defaults, EMPTY

@@ -1,10 +1,10 @@
 """Test the norm master context object."""
 
-from mock import Mock
+from unittest.mock import Mock
 
 from norm.context import Context, StoreContext, StoreContextWrapper
 
-from unittest2 import TestCase
+from unittest import TestCase
 
 
 class Base(object):

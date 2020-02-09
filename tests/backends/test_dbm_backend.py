@@ -4,7 +4,7 @@ import dbm
 import json
 import os
 import tempfile
-from unittest2 import TestCase
+from unittest import TestCase
 
 from norm.backends import dbm_backend
 from norm.context import Context
