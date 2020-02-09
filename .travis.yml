@@ -8,7 +8,7 @@ python:
 install:
 - pip install -r requirements.txt
 - pip install -r dev-requirements.txt
-script: nosetests tests/
+script: pytest tests/
 deploy:
   provider: pypi
   user: joshmarshall
