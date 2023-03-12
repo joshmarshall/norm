@@ -7,6 +7,7 @@ jobs:
     steps:
       - checkout
       - run: pip install poetry
+      - run: poetry config virtualenvs.create false
       - run: poetry install --no-root --with=dev --no-ansi
       - run: flake8
       - run: mypy --strict norm
