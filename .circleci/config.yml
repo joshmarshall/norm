@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - run: pip install poetry
-      - run: poetry install --no-root --with=dev
+      - run: poetry install --no-root --with=dev --no-ansi
       - run: flake8
       - run: mypy --strict norm
       - run: pytest -v tests/ --junit-xml=reports/test-output.xml
