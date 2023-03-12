@@ -7,8 +7,8 @@ jobs:
     steps:
       - checkout
       - run: pip install poetry
-      - run: poetry config virtualenvs.create false
-      - run: poetry install --no-root --with=dev --no-ansi
+      - run: poetry export -f requirements.txt --output requirements.txt
+      - run: pip install -r requirements.txt
       - run: flake8
       - run: mypy --strict norm
       - run: pytest -v tests/ --junit-xml=reports/test-output.xml
