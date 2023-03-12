@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - run: pip install poetry
-      - run: poetry export -f requirements.txt --output requirements.txt
+      - run: poetry export -f requirements.txt --with=dev --output requirements.txt
       - run: pip install -r requirements.txt
       - run: flake8
       - run: mypy --strict norm
