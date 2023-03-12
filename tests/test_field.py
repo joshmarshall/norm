@@ -1,10 +1,10 @@
 import json
 from unittest import mock
 import unittest
+from norm.context import StoreContextWrapper
 from norm.field import Field, get_all_field_names, get_field_name
 from norm.field import get_all_fields, populate_defaults, EMPTY
 from norm.field import EmptyRequiredField
-from norm.context import StoreContextWrapper
 
 try:
     unicode

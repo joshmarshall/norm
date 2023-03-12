@@ -46,7 +46,7 @@ class FakeStore(object):
 
 
 @norm.framework.model
-class Model(object):
+class Model:
 
     use = norm.context.StoreContextWrapper()
 

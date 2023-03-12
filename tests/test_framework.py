@@ -1,5 +1,3 @@
-"""Test Norm interfaces."""
-
 from unittest import TestCase
 import norm.framework
 

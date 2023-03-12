@@ -1,0 +1,21 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    docker:
+      - image: cimg/python:3.10.9
+    steps:
+      - checkout
+      - run: pip install poetry && poetry install --no-root --with=dev
+      - run: flake8 && mypy --strict norm
+      - run: pytest -v tests/ --junit-xml=reports/test-output.xml
+      - store_test_results:
+          path: reports
+      - run: python3 -m build
+      - store_artifacts:
+          path: ./dist
+
+workflows:
+  main:
+    jobs:
+      - build-and-test

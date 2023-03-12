@@ -1,16 +1,22 @@
-import norm.framework
 from norm.context import StoreContextWrapper
-from norm.field import populate_defaults, get_all_fields, EmptyRequiredField
+from norm.field import EmptyRequiredField, get_all_fields, populate_defaults
+from norm.framework import model
+
+from typing import Any, cast, Dict, Generic, Mapping, Optional, TypeVar
 
 
-@norm.framework.model
-class Model(object):
+T = TypeVar("T")
+M = TypeVar("M")
 
+
+@model
+class Model(Generic[T]):
     _id_field = "id"
+    _data: Dict[str, Any]
 
-    use = StoreContextWrapper()
+    use = StoreContextWrapper
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> "Model[T]":
         # caching fields and required fields on the model
         # so we don't have to discover every time.
         if not hasattr(cls, "_fields"):
@@ -23,62 +29,71 @@ class Model(object):
             cls._fields = set(fields)
             cls._required_fields = set(required_fields)
 
-        instance = super(Model, cls).__new__(cls)
+        instance: Model[T] = super().__new__(cls)
         instance._data = {}
         populate_defaults(instance)
         return instance
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         # intented to be overwritten on all but the most simple models
         # currently implements two things: invalid field checking and
         # required field checking. custom models can implement this logic
         # however they want, no need to even call super()
         model_name = self.__class__.__name__
         missing_keys = self._required_fields.difference(
-            list(kwargs.keys()) + list(self._data.keys()))
+            list(kwargs.keys()) + list(self._data.keys())
+        )
         if missing_keys:
             raise EmptyRequiredField(
                 "Field(s) ('{0}') for model '{1}' is "
-                "required but empty.".format(
-                    "', '".join(missing_keys), model_name))
+                "required but empty.".format("', '".join(missing_keys), model_name)
+            )
 
         if not self._fields.issuperset(kwargs.keys()):
             unknown_fields = set(kwargs.keys()).difference(self._fields)
             raise UnknownField(
                 "Could not set field(s) ('{0}') on model '{1}'".format(
-                    "', '".join(unknown_fields), model_name))
+                    "', '".join(unknown_fields), model_name
+                )
+            )
 
         for field, value in kwargs.items():
             setattr(self, field, value)
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: Mapping[str, Any]) -> "Model[T]":
         result = cls.__new__(cls)
         result._data.update(data)
         return result
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         return self._data[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         self._data[key] = value
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return self._data
 
-    def identify(self, key=None):
+    def identify(self, key: Optional[T] = None) -> T:
         if not hasattr(self, self._id_field):
             raise MissingIDField(
                 "Model `{}` is configured to use an id field named `{}`, "
                 "but does not implement one.".format(
-                    self.__class__.__name__, self._id_field))
+                    self.__class__.__name__, self._id_field
+                )
+            )
         if key:
             self._data[self._id_field] = key
-        return getattr(self, self._id_field)
+        return cast(T, getattr(self, self._id_field))
 
-    def __eq__(self, other):
-        return self.identify() == other.identify() and \
-            self.__class__.__name__ == other.__class__.__name__
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, Model):
+            return False
+        return (
+            self.identify() == other.identify()
+            and self.__class__.__name__ == other.__class__.__name__
+        )
 
 
 class MissingIDField(Exception):
@@ -87,6 +102,7 @@ class MissingIDField(Exception):
     an id attribute on the model class.
 
     """
+
     pass
 
 

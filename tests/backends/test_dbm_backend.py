@@ -14,11 +14,11 @@ import norm.framework
 @norm.framework.model
 class Person(object):
 
-    def __init__(self, name, uid):
+    def __init__(self, name, uid) -> None:
         self._name = name
         self._uid = uid
 
-    def to_dict(self):
+    def to_dict(self) -> None:
         return {
             "name": self._name,
             "uid": self._uid
@@ -37,34 +37,34 @@ class Person(object):
 
 class TestDBMBackend(TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         with tempfile.NamedTemporaryFile(suffix=".db") as temp:
             self._tempfile = temp.name
         self._connection = dbm_backend.DBMConnection(self._tempfile)
         self._store = dbm_backend.DBMStore(self._connection)
         self._person = Person(name="Foobar", uid="foobar")
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         if os.path.exists(self._tempfile):
             os.remove(self._tempfile)
 
-    def test_save(self):
+    def test_save(self) -> None:
         self._store.save(self._person)
         dbm_connection = dbm.open(self._tempfile, "r")
         self.assertEqual(
             {"name": "Foobar", "uid": "foobar"},
             json.loads(dbm_connection["Person:foobar"].decode("utf8")))
 
-    def test_fetch(self):
+    def test_fetch(self) -> None:
         self._store.save(self._person)
         fetched = self._store.fetch(Person, "foobar")
         self.assertEqual(fetched, self._person)
 
-    def test_fetch_none(self):
+    def test_fetch_none(self) -> None:
         fetched = self._store.fetch(Person, "whatever")
         self.assertIsNone(fetched)
 
-    def test_register(self):
+    def test_register(self) -> None:
         context = Context()
         dbm_backend.register(context)
         self._store.save(self._person)
@@ -75,7 +75,7 @@ class TestDBMBackend(TestCase):
         person = store.fetch(Person, "foobar")
         self.assertEqual(person, self._person)
 
-    def test_create(self):
+    def test_create(self) -> None:
         person = self._store.create(Person, name="Foo Bar", uid="foobar")
         self.assertEqual(
             {"uid": "foobar", "name": "Foo Bar"}, person.to_dict())
@@ -83,7 +83,7 @@ class TestDBMBackend(TestCase):
         person2 = self._store.fetch(Person, "foobar")
         self.assertEqual(person.to_dict(), person2.to_dict())
 
-    def test_find(self):
+    def test_find(self) -> None:
         persons = []
         for i in range(10):
             person = self._store.create(Person, name=str(i), uid=str(i))
@@ -96,7 +96,17 @@ class TestDBMBackend(TestCase):
         for person in persons:
             self.assertTrue(person in actual_persons)
 
-    def test_delete(self):
+    def test_find_with_query(self) -> None:
+        persons = []
+        for i in range(10):
+            person = self._store.create(Person, name=str(i), uid=str(i))
+            persons.append(person)
+
+        self.assertEqual(
+            [persons[5]],
+            list(self._store.find(Person, {"name": "5"})))
+
+    def test_delete(self) -> None:
         for i in range(10):
             person = self._store.create(Person, name=str(i), uid=str(i))
         self._store.delete(Person, person.identify())

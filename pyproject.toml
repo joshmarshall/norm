@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "norm"
+version = "0.1.1"
+description = "Database-agnostic model and storage library"
+authors = ["Josh Marshall <catchjosh@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.2"
+mypy = "^1.1.1"
+flake8 = "^6.0.0"
+isort = "^5.12.0"
+black = "^23.1.0"
+build = "^0.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

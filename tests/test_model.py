@@ -1,19 +1,20 @@
 from unittest import mock
 import unittest
+from norm.context import StoreContextWrapper
 from norm.model import Model, MissingIDField, UnknownField
 from norm.field import Field, EmptyRequiredField
 
 
 class TestModel(unittest.TestCase):
 
-    def test_model(self):
+    def test_model(self) -> None:
         class M(Model):
             pass
 
         m = M()
         self.assertEqual({}, m.to_dict())
 
-    def test_model_to_dict_defaults(self):
+    def test_model_to_dict_defaults(self) -> None:
         class M(Model):
             field1 = Field(default="foobar")
             field2 = Field(default=None)
@@ -25,21 +26,21 @@ class TestModel(unittest.TestCase):
             "field2": None
         }, instance.to_dict())
 
-    def test_model_to_dict_construction(self):
+    def test_model_to_dict_construction(self) -> None:
         class M(Model):
             field = Field()
 
         instance = M(field="foobar")
         self.assertEqual({"field": "foobar"}, instance.to_dict())
 
-    def test_model_construction_invalid_field(self):
+    def test_model_construction_invalid_field(self) -> None:
         class M(Model):
             pass
 
         with self.assertRaises(UnknownField):
             M(field="foobar")
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         class M(Model):
             field1 = Field(default="foobar")
             field2 = Field()
@@ -56,7 +57,7 @@ class TestModel(unittest.TestCase):
         model.field1 = "foo"
         self.assertEqual("foo", model["field1"])
 
-    def test_identify(self):
+    def test_identify(self) -> None:
         class M(Model):
             id = Field()
 
@@ -65,7 +66,7 @@ class TestModel(unittest.TestCase):
         model.identify("a")
         self.assertEqual("a", model.id)
 
-    def test_equals(self):
+    def test_equals(self) -> None:
         class M(Model):
             id = Field()
 
@@ -73,7 +74,7 @@ class TestModel(unittest.TestCase):
         m2 = M.from_dict({"id": "foobar"})
         self.assertEqual(m1, m2)
 
-    def test_raises_if_missing_id_field(self):
+    def test_raises_if_missing_id_field(self) -> None:
         class M(Model):
             pass
 
@@ -81,33 +82,33 @@ class TestModel(unittest.TestCase):
         with self.assertRaises(MissingIDField):
             m1.identify()
 
-    def test_model_use(self):
+    def test_model_use(self) -> None:
         store = mock.Mock()
         store.fetch._NORM_DESERIALIZE = True
 
         class M(Model):
-            pass
+            use = StoreContextWrapper()
 
         MWrapped = M.use(store)
         MWrapped.store.fetch("foobar")
 
         store.fetch.assert_called_with(MWrapped, "foobar")
 
-    def test_model_set_defaults(self):
+    def test_model_set_defaults(self) -> None:
         class M(Model):
             field = Field(default="whatever")
 
         m = M()
         self.assertEqual("whatever", m.field)
 
-    def test_model_with_required(self):
+    def test_model_with_required(self) -> None:
         class M(Model):
             field = Field(required=True)
 
         with self.assertRaises(EmptyRequiredField):
             M()
 
-    def test_model_with_required_and_default(self):
+    def test_model_with_required_and_default(self) -> None:
         class M(Model):
             field = Field(required=True, default="foo")
 

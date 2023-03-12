@@ -1,25 +1,25 @@
 """Test the norm master context object."""
 
+from typing import Any, Dict, Mapping
+from unittest import TestCase
 from unittest.mock import Mock
 
 from norm.context import Context, StoreContext, StoreContextWrapper
 
-from unittest import TestCase
 
+class Base:
 
-class Base(object):
-
-    def __init__(self, **kwargs):
-        self.data = kwargs
+    def __init__(self, **kwargs: Any) -> None:
+        self.data: Dict[str, Any] = dict(kwargs)
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data: Mapping[str, Any]) -> "Base":
         return cls(**data)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return self.data
 
-    def identify(self, key=None):
+    def identify(self, key: None | str = None) -> None | str:
         if key:
             self.data["id"] = key
         return self.data.get("id")
@@ -97,8 +97,8 @@ class TestNormContext(TestCase):
 
         M = Model.use(mock_store)
         result = M.store.fetch("foobar")
-        mock_store.fetch.assert_called_with(M, "foobar")
         self.assertEqual(result, mock_store.fetch.return_value)
+        mock_store.fetch.assert_called_with(M, "foobar")
 
         m = M(foo="bar")
         m.store.save()
