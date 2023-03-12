@@ -6,8 +6,10 @@ jobs:
       - image: cimg/python:3.10.9
     steps:
       - checkout
-      - run: pip install poetry && poetry install --no-root --with=dev
-      - run: flake8 && mypy --strict norm
+      - run: pip install poetry
+      - run: poetry install --no-root --with=dev
+      - run: flake8
+      - run: mypy --strict norm
       - run: pytest -v tests/ --junit-xml=reports/test-output.xml
       - store_test_results:
           path: reports
